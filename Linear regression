@@ -1,0 +1,25 @@
+Import numpy as np
+Import pandas as pd
+from scipy import stats
+
+data=pd.read_csv("data.csv")
+Print(data)
+
+x=data['tcs']
+y=data['wipro']
+
+n=stats.linregress(x,y)
+print(n)
+
+s=n.slope
+Print( "Slope:", s)
+
+i=n.intercept
+Print("Intercept:", i)
+
+pred_y=s*x+i
+Print("Predicted y values :")
+Print(pred_y)
+
+r_squared=n.rvalue**2
+Print("R-squared:", r_squared)
