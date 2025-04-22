@@ -1,0 +1,28 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("Student1.csv")
+
+print("Student Data:")
+print(df.head(5))
+
+sorted_df = df.sort_values(by="Age")
+print("\nSorted by Age:")
+print(sorted_df)
+
+selected_columns = df[['Age', 'Gender', 'Grade']]
+print("\nSelected Columns (Age, Gender, Grade):")
+print(selected_columns)
+
+print("\nDuplicate Rows:")
+print(df[df.duplicated()])
+
+dups_removed = df.drop_duplicates()
+print("\nAfter Removing Duplicates:")
+print(dups_removed)
+
+if 'mark' in df.columns:
+    df = df.rename(columns={'mark': 'Grade'})
+    print("\nAfter Renaming 'mark' to 'Grade':")
+    print(df)
