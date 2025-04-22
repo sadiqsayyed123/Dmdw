@@ -1,0 +1,25 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+data = pd.read_csv("irisdataset.csv")
+
+print(data.head())
+print(data.info())
+print(data.describe())
+
+data.columns = ['Id', 'SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm', 'Species']
+
+X = data[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']]
+Y = data['Species']
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.30, random_state=42)
+
+model = LogisticRegression(max_iter=200)
+model.fit(X_train, Y_train)
+
+predictions = model.predict(X_test)
+
+accuracy = accuracy_score(Y_test, predictions)
+print("Accuracy:", accuracy)
