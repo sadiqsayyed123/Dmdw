@@ -1,0 +1,48 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+data = pd.read_csv("OnlineRetail.csv")
+data.dropna(subset=['CustomerID'], inplace=True)
+data['InvoiceDate'] = pd.to_datetime(data['InvoiceDate'], format="%d-%m-%Y %H:%M")
+data['TotalAmount'] = data['Quantity'] * data['UnitPrice']
+
+rfm = data.groupby('CustomerID').agg({
+    'InvoiceDate': lambda x: (data['InvoiceDate'].max() - x.max()).days,
+    'InvoiceNo': 'nunique',
+    'TotalAmount': 'sum'
+}).reset_index()
+
+rfm.columns = ['CustomerID', 'Recency', 'Frequency', 'Monetary']
+
+print("\n📊 RFM Metrics (First 5 rows):")
+print(rfm.head())
+
+scaler = StandardScaler()
+rfm_scaled = scaler.fit_transform(rfm[['Recency', 'Frequency', 'Monetary']])
+
+n_clusters = min(3, len(rfm))
+print(f"\n🔢 Total Customers: {len(rfm)} | Clustering into {n_clusters} groups")
+
+kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+rfm['Cluster'] = kmeans.fit_predict(rfm_scaled)
+
+print("\n✅ Clustered Customers (Sample):")
+print(rfm[['CustomerID', 'Recency', 'Frequency', 'Monetary', 'Cluster']].head())
+
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+for label in rfm['Cluster'].unique():
+    cluster = rfm[rfm['Cluster'] == label]
+    ax.scatter(cluster['Monetary'], cluster['Frequency'], cluster['Recency'], label=f'Cluster {label}')
+
+ax.set_xlabel('Monetary')
+ax.set_ylabel('Frequency')
+ax.set_zlabel('Recency')
+ax.view_init(30, 210)
+plt.title('Customer Segments Based on Purchasing Behavior')
+plt.legend()
+plt.tight_layout()
+plt.show()
