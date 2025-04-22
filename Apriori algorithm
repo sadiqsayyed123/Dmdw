@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+
+data = pd.read_csv("OnlineRetail.csv", encoding='unicode_escape')
+print("First few rows:\n", data.head())
+print("\nColumn names:\n", data.columns)
+
+data.columns = data.columns.str.strip()
+
+if 'InvoiceNo' not in data.columns:
+    raise KeyError("The column 'InvoiceNo' was not found. Please check your dataset.")
+
+data['Description'] = data['Description'].str.strip()
+data.dropna(subset=['InvoiceNo'], inplace=True)
+data['InvoiceNo'] = data['InvoiceNo'].astype(str)
+
+data = data[~data['InvoiceNo'].str.contains('C', na=False)]
+
+def create_basket(country):
+    basket = (data[data['Country'] == country]
+              .groupby(['InvoiceNo', 'Description'])['Quantity']
+              .sum().unstack().reset_index()
+              .fillna(0)
+              .set_index('InvoiceNo'))
+    return basket
+
+basket_France = create_basket("France")
+basket_UK = create_basket("United Kingdom")
+basket_Por = create_basket("Portugal")
+basket_Sweden = create_basket("Sweden")
+
+def hot_encode(x):
+    return 1 if x >= 1 else 0
+
+basket_France = basket_France.applymap(hot_encode)
+basket_UK = basket_UK.applymap(hot_encode)
+basket_Por = basket_Por.applymap(hot_encode)
+basket_Sweden = basket_Sweden.applymap(hot_encode)
+
+frequent_items = apriori(basket_France, min_support=0.05, use_colnames=True)
+
+rules = association_rules(frequent_items, metric="lift", min_threshold=1)
+rules = rules.sort_values(by=['confidence', 'lift'], ascending=[False, False])
+
+print("\nTop Association Rules for France:")
+print(rules.head())
